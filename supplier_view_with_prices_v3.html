@@ -1,0 +1,66 @@
+
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Leverandørvisning – med utvidelser</title>
+<style>
+ body{font-family:Arial,sans-serif;background:#f5f7fb;margin:0}
+ header{background:#004578;color:#fff;padding:20px;text-align:center}
+ main{max-width:1160px;margin:20px auto;background:#fff;padding:20px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.1)}
+ table{width:100%;border-collapse:collapse;margin-top:20px}
+ th,td{border:1px solid #ccc;padding:8px;text-align:left}
+ th{background:#eee}
+ .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+ tfoot td{font-weight:bold;background:#f7f7f7}
+</style>
+</head>
+<body>
+<header><h1>Leverandørvisning</h1></header>
+<main>
+<div class="row">
+  <label>Leverandør:</label><select id="filterSupplier"></select>
+  <label>Fra:</label><input type="date" id="fromDate">
+  <label>Til:</label><input type="date" id="toDate">
+  <button id="csvBtn">Last ned CSV</button>
+</div>
+<table>
+  <thead><tr>
+    <th>Innsendt</th><th>Bestiller</th><th>Avd</th><th>Meny</th><th>Valg</th><th>Tillegg(mat)</th>
+    <th>Drikke</th><th>Variant</th><th>Drikketillegg</th><th>Merknad</th><th>Sted</th><th>Dato</th><th>Tid</th>
+    <th>Matpris</th><th>Bruspris</th><th>Total</th><th>Handling</th>
+  </tr></thead>
+  <tbody id="ordersTable"></tbody>
+  <tfoot><tr><td colspan="13">Sum filtrert:</td><td id="sumFood">0</td><td id="sumDrink">0</td><td id="sumTotal">0</td><td></td></tr></tfoot>
+</table>
+</main>
+<script src="overtidsmat_shared.js"></script>
+<script>
+function g(id){return document.getElementById(id);} 
+const fs=g('filterSupplier'), fd=g('fromDate'), td=g('toDate');
+const tbl=g('ordersTable'); const sf=g('sumFood'), sd=g('sumDrink'), st=g('sumTotal');
+function loadSup(){const cfg=OvertidsmatConfig.loadConfig(); const s=OvertidsmatConfig.getSuppliers(cfg); fs.innerHTML=''; s.forEach(x=>{const o=document.createElement('option');o.value=x;o.textContent=x;fs.appendChild(o);});}
+function getOrders(){return JSON.parse(localStorage.getItem('orders')||'[]');}
+function passDateRange(o){const f=fd.value, t=td.value; if(f && o.date < f) return false; if(t && o.date > t) return false; return true;}
+function filt(){const s=fs.value; return getOrders().filter(o=>o.supplier===s).filter(passDateRange);} 
+function rend(){tbl.innerHTML=''; let SF=0,SD=0,ST=0; filt().forEach(o=>{const f=Number(o.totalFood||0), d=Number(o.totalDrink||0), tt=(o.total!=null?Number(o.total):f+d); SF+=f; SD+=d; ST+=tt;
+const tr=document.createElement('tr'); tr.innerHTML='<td>'+new Date(o.timestamp).toLocaleString()+'</td>'+
+  '<td>'+o.name+'</td><td>'+o.department+'</td><td>'+o.menu+'</td><td>'+(o.submenu||'')+'</td>'+
+  '<td>'+((o.extras||[]).join(', '))+'</td><td>'+(o.drink||'')+'</td><td>'+(o.drinkVariant||'')+'</td>'+
+  '<td>'+((o.drinkExtras||[]).join(', '))+'</td><td>'+(o.remarks||'')+'</td><td>'+(o.deliveryPlace||'')+'</td>'+
+  '<td>'+o.date+'</td><td>'+o.time+'</td><td>'+f+'</td><td>'+d+'</td><td>'+tt+'</td><td></td>';
+  tbl.appendChild(tr); }); sf.textContent=SF; sd.textContent=SD; st.textContent=ST;} 
+function esc(v){return '"'+String(v).replaceAll('"','""')+'"';}
+function toCSV(){const rows=filt(); const H=['Innsendt','Bestiller','Avd','Meny','Valg','Tillegg','Drikke','Variant','Drikketillegg','Merknad','Sted','Dato','Tid','Mat','Brus','Total'];
+let out=[H.map(esc).join(',')]; let SF=0,SD=0,ST=0;
+rows.forEach(o=>{const f=Number(o.totalFood||0), d=Number(o.totalDrink||0), tt=(o.total!=null?Number(o.total):f+d); SF+=f;SD+=d;ST+=tt;
+  out.push([new Date(o.timestamp).toLocaleString(),o.name,o.department,o.menu,o.submenu||'',(o.extras||[]).join('; '),o.drink||'',o.drinkVariant||'',(o.drinkExtras||[]).join('; '),o.remarks||'',o.deliveryPlace||'',o.date,o.time,f,d,tt].map(esc).join(','));});
+out.push(['SUM','','','','','','','','','','','','',SF,SD,ST].map(esc).join(',')); return out.join('
+');}
+
+g('csvBtn').onclick=()=>{const csv=toCSV(); const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8;'})); a.download='lev_rapport.csv'; a.click();};
+fs.onchange=rend; fd.onchange=rend; td.onchange=rend;
+loadSup(); rend();
+</script>
+</body>
+</html>

@@ -1,0 +1,152 @@
+
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bestilling av overtidsmat</title>
+<style>
+ body{font-family:Arial,sans-serif;background:#f5f7fb;margin:0;padding:0}
+ header{background:#004578;color:#fff;padding:20px;text-align:center}
+ main{max-width:740px;margin:20px auto;background:#fff;padding:20px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.1)}
+ label{display:block;margin-top:10px;font-weight:bold}
+ select,input,textarea{width:100%;padding:8px;margin-top:5px;border:1px solid #ccc;border-radius:4px}
+ button{margin-top:15px;padding:10px 15px;background:#107c10;color:#fff;border:none;border-radius:4px;cursor:pointer}
+ button:hover{background:#0b5e0b}
+ .muted{color:#6b6b6b;font-size:.9rem}
+ .links{display:flex;gap:12px;flex-wrap:wrap;margin:10px 0 6px}
+ .links a{background:#fff;border:1px solid #ddd;border-radius:6px;padding:6px 10px;text-decoration:none;color:#004578}
+ .links a:hover{border-color:#004578}
+ .checkboxes{display:flex;gap:12px;flex-wrap:wrap;margin-top:6px}
+ .checkboxes label{display:flex;align-items:center;gap:6px;font-weight:normal;border:1px solid #ddd;padding:6px 10px;border-radius:6px;background:#fafafa}
+ .block{border:1px solid #e5e5e5;background:#fafafa;border-radius:8px;padding:12px;margin-top:10px}
+ .subtle{font-size:.9rem;color:#555}
+ .error{color:#a80000}
+ .disabledBox{opacity:.6}
+</style>
+</head>
+<body>
+<header><h1>Bestilling av overtidsmat</h1><div class="muted">Styres av admin</div></header>
+<main>
+ <div id="menuLinks" class="links" style="display:none"></div>
+ <div id="cutoffBox" class="error" style="display:none"></div>
+ <form id="orderForm">
+ <label for="supplier">Leverandør</label>
+ <select id="supplier" required><option value="">Velg leverandør</option></select>
+ <label for="name">Navn på bestiller</label>
+ <input type="text" id="name" required>
+ <label for="department">Avdeling</label>
+ <select id="department" required><option value="">Velg avdeling</option></select>
+ <label for="menu">Meny</label>
+ <select id="menu" required><option value="">Velg meny</option></select>
+ <div id="submenuWrap" style="display:none" class="block">
+ <label for="submenu">Menyvalg</label>
+ <select id="submenu"><option value="">Velg valg innen meny</option></select>
+ <div id="extrasWrap" style="display:none">
+ <label>Tillegg (mat)</label>
+ <div id="extras" class="checkboxes"></div>
+ </div>
+ </div>
+ <div id="drinkWrap" class="block" style="display:none">
+ <label for="drink">Drikke</label>
+ <select id="drink"><option value="">Velg drikke</option></select>
+ <div id="drinkVariantWrap" style="display:none">
+ <label for="drinkVariant">Variant</label>
+ <select id="drinkVariant"><option value="">Velg variant</option></select>
+ </div>
+ <div id="drinkExtrasWrap" style="display:none">
+ <label>Tillegg (drikke)</label>
+ <div id="drinkExtras" class="checkboxes"></div>
+ </div>
+ <div id="drinkLimitMsg" class="error" style="display:none">Brus kan ikke bestilles når mat er 200 kr eller mer (maks 200 kr per bestilling).</div>
+ </div>
+ <label for="place">Leveringssted</label>
+ <select id="place" required><option value="">Velg leveringssted</option></select>
+ <div id="futureFields"></div>
+ <label for="remarks">Merknad</label>
+ <textarea id="remarks" rows="3" placeholder="F.eks. uten løk"></textarea>
+ <label for="date">Leveringsdato</label>
+ <input type="date" id="date" required>
+ <label for="time">Leveringstid</label>
+ <input type="time" id="time" required>
+ <div id="priceSummary" class="block" style="display:none">
+   <div>Sum mat: <b><span id="sumFood">0</span> kr</b></div>
+   <div>Sum brus: <b><span id="sumDrink">0</span> kr</b></div>
+   <div>Total: <b><span id="sumTotal">0</span> kr</b></div>
+ </div>
+ <button type="submit" id="submitBtn">Send bestilling</button>
+ </form>
+</main>
+<script src="overtidsmat_shared.js"></script>
+<script>
+const supplierSelect=document.getElementById('supplier');
+const deptSelect=document.getElementById('department');
+const menuSelect=document.getElementById('menu');
+const submenuWrap=document.getElementById('submenuWrap');
+const submenuSelect=document.getElementById('submenu');
+const extrasWrap=document.getElementById('extrasWrap');
+const extrasDiv=document.getElementById('extras');
+const drinkWrap=document.getElementById('drinkWrap');
+const drinkSelect=document.getElementById('drink');
+const drinkVariantWrap=document.getElementById('drinkVariantWrap');
+const drinkVariantSelect=document.getElementById('drinkVariant');
+const drinkExtrasWrap=document.getElementById('drinkExtrasWrap');
+const drinkExtrasDiv=document.getElementById('drinkExtras');
+const placeSelect=document.getElementById('place');
+const futureFields=document.getElementById('futureFields');
+const menuLinksDiv=document.getElementById('menuLinks');
+const priceSummary=document.getElementById('priceSummary');
+const sumFoodEl=document.getElementById('sumFood');
+const sumDrinkEl=document.getElementById('sumDrink');
+const sumTotalEl=document.getElementById('sumTotal');
+const drinkLimitMsg=document.getElementById('drinkLimitMsg');
+const LIMIT=200;
+function kr(n){return (Number(n)||0).toString();}
+function renderMenuLinks(){ const cfg=OvertidsmatConfig.loadConfig(); const links=OvertidsmatConfig.getMenuLinks(cfg); menuLinksDiv.innerHTML=''; if(!links.length){ menuLinksDiv.style.display='none'; return;} links.forEach(l=>{ const a=document.createElement('a'); a.href=l.url; a.target='_blank'; a.rel='noopener'; a.textContent=l.label; menuLinksDiv.appendChild(a); }); menuLinksDiv.style.display='flex'; }
+function populateSuppliers(){ const cfg=OvertidsmatConfig.loadConfig(); supplierSelect.innerHTML='<option value="">Velg leverandør</option>'; OvertidsmatConfig.getSuppliers(cfg).forEach(n=>{ const opt=document.createElement('option'); opt.value=n; opt.textContent=n; supplierSelect.appendChild(opt); }); }
+function populateDepartments(){ const cfg=OvertidsmatConfig.loadConfig(); deptSelect.innerHTML='<option value="">Velg avdeling</option>'; OvertidsmatConfig.getDepartments(cfg).forEach(d=>{ const opt=document.createElement('option'); opt.value=d; opt.textContent=d; deptSelect.appendChild(opt); }); }
+function populateMenu(){ const cfg=OvertidsmatConfig.loadConfig(); const s=supplierSelect.value; const items=OvertidsmatConfig.getMenuItems(cfg,s); menuSelect.innerHTML='<option value="">Velg meny</option>'; items.forEach(i=>{ const p=OvertidsmatConfig.getMenuItemPrice(cfg,s,i); const opt=document.createElement('option'); opt.value=i; opt.textContent=p? `${i} (kr ${kr(p)})` : i; menuSelect.appendChild(opt); }); populateSubmenu(); populateDrinks(); updateTotalsAndLimit(); }
+function populateSubmenu(){ const cfg=OvertidsmatConfig.loadConfig(); const s=supplierSelect.value; const m=menuSelect.value; const subs=OvertidsmatConfig.getSubmenu(cfg,s,m); submenuSelect.innerHTML='<option value="">Velg valg innen meny</option>'; if(subs.length){ subs.forEach(x=>{ const p=OvertidsmatConfig.getSubmenuItemPrice(cfg,s,m,x); const opt=document.createElement('option'); opt.value=x; opt.textContent=p? `${x} (+${kr(p)})` : x; submenuSelect.appendChild(opt); }); submenuWrap.style.display=''; } else { submenuWrap.style.display='none'; submenuSelect.value=''; }
+ populateExtras(); updateTotalsAndLimit(); }
+function populateExtras(){ const cfg=OvertidsmatConfig.loadConfig(); const s=supplierSelect.value; const m=menuSelect.value; const sub=submenuSelect.value; extrasDiv.innerHTML=''; if(!s||!m||!sub){ extrasWrap.style.display='none'; updateTotalsAndLimit(); return; } const arr=OvertidsmatConfig.getSubExtras(cfg,s,m,sub); if(!arr.length){ extrasWrap.style.display='none'; updateTotalsAndLimit(); return;} arr.forEach(name=>{ const id='ex_'+name.replace(/[^a-z0-9]/ig,'_'); const lab=document.createElement('label'); const cb=document.createElement('input'); cb.type='checkbox'; cb.value=name; cb.id=id; lab.setAttribute('for', id); lab.appendChild(cb); const p=OvertidsmatConfig.getSubExtraPrice(cfg,s,m,sub,name); const span=document.createElement('span'); span.textContent=p? `${name} (+${kr(p)})` : name; lab.appendChild(span); extrasDiv.appendChild(lab); }); extrasWrap.style.display=''; updateTotalsAndLimit(); }
+function populateDrinks(){ const cfg=OvertidsmatConfig.loadConfig(); const s=supplierSelect.value; drinkSelect.innerHTML='<option value="">Velg drikke</option>'; const drinks=OvertidsmatConfig.getDrinks(cfg,s); if(!drinks.length){ drinkWrap.style.display='none'; return; } drinks.forEach(d=>{ const p=OvertidsmatConfig.getDrinkPrice(cfg,s,d); const opt=document.createElement('option'); opt.value=d; opt.textContent=p? `${d} (kr ${kr(p)})` : d; drinkSelect.appendChild(opt); }); drinkWrap.style.display=''; populateDrinkVariants(); updateTotalsAndLimit(); }
+function populateDrinkVariants(){ const cfg=OvertidsmatConfig.loadConfig(); const s=supplierSelect.value; const d=drinkSelect.value; const vars=OvertidsmatConfig.getDrinkVariants(cfg,s,d); drinkVariantSelect.innerHTML='<option value="">Velg variant</option>'; if(vars.length){ vars.forEach(v=>{ const p=OvertidsmatConfig.getDrinkVariantPrice(cfg,s,d,v); const opt=document.createElement('option'); opt.value=v; opt.textContent=p? `${v} (+${kr(p)})` : v; drinkVariantSelect.appendChild(opt); }); drinkVariantWrap.style.display=''; } else { drinkVariantWrap.style.display='none'; drinkVariantSelect.value=''; }
+ populateDrinkExtras(); updateTotalsAndLimit(); }
+function populateDrinkExtras(){ const cfg=OvertidsmatConfig.loadConfig(); const s=supplierSelect.value; const d=drinkSelect.value; const v=drinkVariantSelect.value; drinkExtrasDiv.innerHTML=''; const vars=OvertidsmatConfig.getDrinkVariants(cfg,s,d); if(!d){ drinkExtrasWrap.style.display='none'; updateTotalsAndLimit(); return; } if(vars.length && !v){ drinkExtrasWrap.style.display='none'; updateTotalsAndLimit(); return; }
+ if(vars.length){ const arr=OvertidsmatConfig.getDrinkExtras(cfg,s,d,v); if(!arr.length){ drinkExtrasWrap.style.display='none'; updateTotalsAndLimit(); return; } arr.forEach(name=>{ const id='dex_'+name.replace(/[^a-z0-9]/ig,'_'); const lab=document.createElement('label'); const cb=document.createElement('input'); cb.type='checkbox'; cb.value=name; cb.id=id; lab.setAttribute('for', id); lab.appendChild(cb); const p=OvertidsmatConfig.getDrinkExtraPrice(cfg,s,d,v,name); const span=document.createElement('span'); span.textContent=p? `${name} (+${kr(p)})` : name; lab.appendChild(span); drinkExtrasDiv.appendChild(lab); }); drinkExtrasWrap.style.display=''; } else { drinkExtrasWrap.style.display='none'; }
+ updateTotalsAndLimit(); }
+function getFoodPrice(){ const cfg=OvertidsmatConfig.loadConfig(); const s=supplierSelect.value; const m=menuSelect.value; if(!s||!m) return 0; let sum=Number(OvertidsmatConfig.getMenuItemPrice(cfg,s,m)||0); const sub=submenuSelect.value; if(sub) sum+=Number(OvertidsmatConfig.getSubmenuItemPrice(cfg,s,m,sub)||0); const checked=Array.from(extrasDiv.querySelectorAll('input[type=checkbox]:checked')).map(cb=>cb.value); checked.forEach(x=>{ sum+=Number(OvertidsmatConfig.getSubExtraPrice(cfg,s,m,sub,x)||0); }); return sum; }
+function getDrinkPrice(){ const cfg=OvertidsmatConfig.loadConfig(); const s=supplierSelect.value; const d=drinkSelect.value; if(!s||!d) return 0; let sum=Number(OvertidsmatConfig.getDrinkPrice(cfg,s,d)||0); const vars=OvertidsmatConfig.getDrinkVariants(cfg,s,d); if(vars.length){ const v=drinkVariantSelect.value; if(v) sum+=Number(OvertidsmatConfig.getDrinkVariantPrice(cfg,s,d,v)||0); const checked=Array.from(drinkExtrasDiv.querySelectorAll('input[type=checkbox]:checked')).map(cb=>cb.value); checked.forEach(x=>{ sum+=Number(OvertidsmatConfig.getDrinkExtraPrice(cfg,s,d,drinkVariantSelect.value,x)||0); }); }
+ return sum; }
+function setDrinkSectionDisabled(disabled){
+  [drinkSelect,drinkVariantSelect].forEach(el=>el.disabled=disabled);
+  drinkExtrasDiv.querySelectorAll('input[type=checkbox]').forEach(cb=>cb.disabled=disabled);
+  if(disabled){ drinkSelect.value=''; drinkVariantSelect.value=''; drinkExtrasDiv.querySelectorAll('input').forEach(cb=>cb.checked=false); drinkVariantWrap.style.display='none'; drinkExtrasWrap.style.display='none'; }
+  drinkWrap.classList.toggle('disabledBox', disabled);
+}
+function updateTotalsAndLimit(){ const food=getFoodPrice(); const drinks=getDrinkPrice(); const total=food+drinks; sumFoodEl.textContent=kr(food); sumDrinkEl.textContent=kr(drinks); sumTotalEl.textContent=kr(total); priceSummary.style.display='';
+  // Variant B: Disable drinks if MAT >= 200. Also, never allow total > 200.
+  if(food >= LIMIT){ setDrinkSectionDisabled(true); drinkLimitMsg.style.display=''; sumDrinkEl.textContent='0'; sumTotalEl.textContent=kr(food); }
+  else { setDrinkSectionDisabled(false); drinkLimitMsg.style.display='none'; if(total>LIMIT){ // if user somehow gets over 200, strip drinks
+      drinkSelect.value=''; drinkVariantSelect.value=''; drinkExtrasDiv.querySelectorAll('input').forEach(cb=>cb.checked=false);
+      populateDrinkVariants(); populateDrinkExtras(); sumDrinkEl.textContent='0'; sumTotalEl.textContent=kr(food); }
+  }
+}
+supplierSelect.addEventListener('change', ()=>{ populateMenu(); populateDrinks(); updateTotalsAndLimit(); });
+menuSelect.addEventListener('change', ()=>{ populateSubmenu(); updateTotalsAndLimit(); });
+submenuSelect.addEventListener('change', ()=>{ populateExtras(); updateTotalsAndLimit(); });
+extrasDiv.addEventListener('change', updateTotalsAndLimit);
+drinkSelect.addEventListener('change', ()=>{ populateDrinkVariants(); updateTotalsAndLimit(); });
+drinkVariantSelect.addEventListener('change', ()=>{ populateDrinkExtras(); updateTotalsAndLimit(); });
+drinkExtrasDiv.addEventListener('change', updateTotalsAndLimit);
+function populatePlaces(){ const cfg=OvertidsmatConfig.loadConfig(); placeSelect.innerHTML='<option value="">Velg leveringssted</option>'; OvertidsmatConfig.getDeliveryPlaces(cfg).forEach(p=>{ const opt=document.createElement('option'); opt.value=p; opt.textContent=p; placeSelect.appendChild(opt); }); }
+function populateFutureFields(){ const cfg=OvertidsmatConfig.loadConfig(); futureFields.innerHTML=''; OvertidsmatConfig.getFutureOptions(cfg).forEach(o=>{ const div=document.createElement('div'); const label=document.createElement('label'); label.textContent=o.label; div.appendChild(label); if(o.type==='text'){ const input=document.createElement('input'); input.type='text'; input.name='future_'+o.label; div.appendChild(input);} else if(o.type==='dropdown'){ const select=document.createElement('select'); select.name='future_'+o.label; const opt=document.createElement('option'); opt.value=''; opt.textContent='Velg'; select.appendChild(opt); (o.choices||[]).forEach(c=>{ const ch=document.createElement('option'); ch.value=c; ch.textContent=c; select.appendChild(ch); }); div.appendChild(select);} else if(o.type==='date'){ const input=document.createElement('input'); input.type='date'; input.name='future_'+o.label; div.appendChild(input);} futureFields.appendChild(div); }); }
+
+document.getElementById('orderForm').addEventListener('submit', function(e){ e.preventDefault(); const foodExtras=Array.from(extrasDiv.querySelectorAll('input[type=checkbox]:checked')).map(cb=>cb.value); const drinkExtras=Array.from(drinkExtrasDiv.querySelectorAll('input[type=checkbox]:checked')).map(cb=>cb.value);
+ const food=getFoodPrice(); const drinks=getDrinkPrice(); const total=food+drinks; if(food >= LIMIT){ alert('Matpris er 200 kr eller mer – brus kan ikke bestilles.'); return; } if(total>LIMIT){ alert('Totalpris overstiger 200 kr – brus fjernet.'); return; }
+ const order={ supplier:supplierSelect.value, name:document.getElementById('name').value, department:deptSelect.value, menu:menuSelect.value, submenu:submenuSelect.value || '', extras: foodExtras, drink: drinkSelect.value||'', drinkVariant: drinkVariantSelect.value||'', drinkExtras: drinkExtras, deliveryPlace:placeSelect.value, remarks:document.getElementById('remarks').value, date:document.getElementById('date').value, time:document.getElementById('time').value, totalFood:food, totalDrink:drinks, total: total, timestamp:new Date().toISOString(), future:{} };
+ futureFields.querySelectorAll('input,select').forEach(el=>{ order.future[el.name]=el.value; }); if(!order.supplier||!order.menu||!order.deliveryPlace||!order.department){ alert('Velg leverandør, avdeling, meny og leveringssted.'); return; }
+ let orders=JSON.parse(localStorage.getItem('orders')||'[]'); orders.push(order); localStorage.setItem('orders', JSON.stringify(orders)); alert('Bestilling lagret!'); this.reset(); populateMenu(); populateSubmenu(); populateExtras(); populateFutureFields(); populateDrinks(); updateTotalsAndLimit(); });
+renderMenuLinks(); populateSuppliers(); populateDepartments(); populateMenu(); populateSubmenu(); populateExtras(); populateDrinks(); populatePlaces(); populateFutureFields(); updateTotalsAndLimit();
+</script>
+</body>
+</html>

@@ -1,0 +1,37 @@
+
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aggregert rapport</title>
+<style>
+ body{font-family:Arial,sans-serif;background:#f5f7fb;margin:0}
+ header{background:#004578;color:#fff;padding:20px;text-align:center}
+ main{max-width:900px;margin:20px auto;background:#fff;padding:20px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.1)}
+ table{width:100%;border-collapse:collapse;margin-top:20px}
+ th,td{border:1px solid #ccc;padding:8px;text-align:left}
+ th{background:#eee}
+</style>
+</head>
+<body>
+<header><h1>Aggregert dagsrapport</h1></header>
+<main>
+  <label>Dato:</label><input type="date" id="d"> <button id="gen">Generer</button>
+  <table>
+    <thead><tr><th>Leverandør</th><th>Antall</th><th>Mat</th><th>Brus</th><th>Total</th></tr></thead>
+    <tbody id="T"></tbody>
+  </table>
+</main>
+<script src="overtidsmat_shared.js"></script>
+<script>
+function g(i){return document.getElementById(i);} 
+function getOrders(){return JSON.parse(localStorage.getItem('orders')||'[]');}
+function gen(){const day=g('d').value; const rows=getOrders().filter(o=>!day||o.date===day);
+let m={}; rows.forEach(o=>{if(!m[o.supplier]) m[o.supplier]={c:0,f:0,d:0,t:0}; const f=Number(o.totalFood||0), dr=Number(o.totalDrink||0), tt=(o.total!=null?Number(o.total):f+dr);
+ m[o.supplier].c++; m[o.supplier].f+=f; m[o.supplier].d+=dr; m[o.supplier].t+=tt;});
+const T=g('T'); T.innerHTML=''; Object.keys(m).forEach(s=>{const r=m[s]; const tr=document.createElement('tr'); tr.innerHTML='<td>'+s+'</td><td>'+r.c+'</td><td>'+r.f+'</td><td>'+r.d+'</td><td>'+r.t+'</td>'; T.appendChild(tr);});}
+
+g('gen').onclick=gen;
+</script>
+</body>
+</html>
