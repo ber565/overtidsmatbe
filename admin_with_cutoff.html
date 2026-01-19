@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Admin – Meny, Drikke, Avdelinger, Steder, Fremtidige felt & Meny‑lenker</title>
+<style>
+  body{font-family:Segoe UI,Arial,sans-serif;background:#f5f7fb;margin:0;color:#111}
+  header{background:#004578;color:#fff;padding:20px}
+  main{max-width:1160px;margin:24px auto;padding:0 16px}
+  .card{background:#fff;border-radius:10px;box-shadow:0 2px 10px rgba(0,0,0,.06);padding:20px;margin-bottom:18px}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  input,select,button,textarea{padding:8px;border-radius:6px;border:1px solid #ccc}
+  button{background:#107c10;color:#fff;border:0;cursor:pointer}
+  button.secondary{background:#666} button.danger{background:#a80000}
+  ul{list-style:none;padding-left:0}
+  li{display:flex;justify-content:space-between;align-items:center;padding:6px 8px;border:1px solid #eee;border-radius:6px;margin-bottom:6px}
+  .muted{color:#6b6b6b}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media (max-width:900px){.grid{grid-template-columns:1fr}}
+  .pill{background:#f1f1f1;border:1px solid #ddd;border-radius:999px;padding:4px 10px}
+  .small{font-size:.9rem}
+</style>
+</head>
+<body>
+<header><h1>Admin</h1></header>
+<main>
+  <section class="card">
+    <h2>Leverandører</h2>
+    <div class="row">
+      <label class="muted">Velg</label>
+      <select id="supplierSelect"></select>
+      <input id="newSupplier" type="text" placeholder="Ny leverandør" />
+      <button id="addSupplierBtn">Legg til</button>
+      <button id="renameSupplierBtn" class="secondary">Gi nytt navn</button>
+      <button id="removeSupplierBtn" class="danger">Slett</button>
+    </div>
+    <div class="row" style="margin-top:10px">
+      <label class="muted">Passord</label>
+      <input id="supplierPassword" type="password" placeholder="Sett/endre passord" />
+      <button id="togglePw" class="secondary" type="button">Vis</button>
+      <button id="savePwBtn" type="button">Lagre passord</button>
+      <span class="muted small">(Tomt = ingen beskyttelse)</span>
+    </div>
+  </section>
+<section class="card">
+<h2>Bestillingsfrister (globalt)</h2>
+<div class="row"><label>Hverdag:</label><input id="cutoffWeekday" type="time"/></div>
+<div class="row"><label>Helg (fredag frist):</label><input id="cutoffWeekend" type="time"/></div>
+<button id="saveCutoffs">Lagre frister</button>
+</section>
+
+
+  <section class="card">
+    <h2>Meny (3 nivå): Meny → Under‑valg → Tillegg</h2>
+    <div class="grid">
+      <div>
+        <h3>Menyelementer</h3>
+        <div class="row">
+          <input id="newMenuItem" type="text" placeholder="Nytt menyelement (f.eks. Hamburger)" />
+          <button id="addMenuItemBtn">Legg til</button>
+        </div>
+        <ul id="menuList"></ul>
+      </div>
+      <div>
+        <h3>Under‑valg</h3>
+        <div class="row">
+          <select id="menuItemSelect"></select>
+          <input id="newSubItem" type="text" placeholder="Nytt under‑valg (f.eks. 160 g)" />
+          <button id="addSubItemBtn">Legg til under‑valg</button>
+          <button id="resetSubBtn" class="danger" type="button">Tilbakestill under‑valg</button>
+        </div>
+        <ul id="subList"></ul>
+      </div>
+    </div>
+    <div class="grid" style="margin-top:12px">
+      <div>
+        <h3>Tillegg for valgt under‑valg</h3>
+        <div class="row"><span id="crumb" class="pill">(velg meny og under‑valg)</span></div>
+        <div class="row">
+          <select id="subItemSelect"></select>
+          <input id="newExtra" type="text" placeholder="Nytt tillegg (f.eks. Bacon)" />
+          <button id="addExtraBtn" disabled>Legg til tillegg</button>
+          <button id="resetExtrasBtn" class="danger" type="button" disabled>Tilbakestill tillegg</button>
+        </div>
+        <ul id="extrasList"></ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Drikke (leverandør) – Drikke → Variant (valgfri) → Tillegg (valgfri)</h2>
+    <div class="grid">
+      <div>
+        <h3>Drikke</h3>
+        <div class="row">
+          <input id="newDrink" type="text" placeholder="Ny drikke (f.eks. Cola)" />
+          <button id="addDrinkBtn">Legg til drikke</button>
+        </div>
+        <ul id="drinkList"></ul>
+      </div>
+      <div>
+        <h3>Varianter</h3>
+        <div class="row">
+          <select id="drinkSelect"></select>
+          <input id="newVariant" type="text" placeholder="Ny variant (f.eks. 0,5 L)" />
+          <button id="addVariantBtn">Legg til variant</button>
+          <button id="resetVariantsBtn" class="danger" type="button">Tilbakestill varianter</button>
+        </div>
+        <ul id="variantList"></ul>
+      </div>
+    </div>
+    <div class="grid" style="margin-top:12px">
+      <div>
+        <h3>Tillegg for valgt variant</h3>
+        <div class="row">
+          <select id="variantSelect"></select>
+          <input id="newDrinkExtra" type="text" placeholder="Nytt tillegg (f.eks. Sitron)" />
+          <button id="addDrinkExtraBtn">Legg til tillegg</button>
+          <button id="resetDrinkExtrasBtn" class="danger" type="button">Tilbakestill tillegg</button>
+        </div>
+        <ul id="drinkExtrasList"></ul>
+      </div>
+    </div>
+    <div class="row small">
+      Tips: Drikke kan være enkel (ingen varianter/tillegg). Du kan da bare legge inn drikke uten å definere varianter.
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Avdelinger (rullegardin i skjema)</h2>
+    <div class="row">
+      <input id="newDept" type="text" placeholder="Ny avdeling" />
+      <button id="addDeptBtn">Legg til avdeling</button>
+    </div>
+    <ul id="deptList"></ul>
+  </section>
+
+  <section class="card">
+    <h2>Leveringssteder (rullegardin i skjema)</h2>
+    <div class="row">
+      <input id="newPlace" type="text" placeholder="Nytt sted" />
+      <button id="addPlaceBtn">Legg til sted</button>
+    </div>
+    <ul id="placesList"></ul>
+  </section>
+
+  <section class="card">
+    <h2>Fremtidige Forms‑valg (rekkefølge ↑↓)</h2>
+    <div class="grid">
+      <div>
+        <div class="row">
+          <input id="futureLabel" type="text" placeholder="Label (f.eks. Tilbehør)" />
+          <select id="futureType">
+            <option value="text">Tekstfelt</option>
+            <option value="dropdown">Rullegardin</option>
+            <option value="date">Datovelger</option>
+          </select>
+          <button id="addFutureBtn">Legg til</button>
+        </div>
+        <ul id="futureList"></ul>
+      </div>
+      <div>
+        <div class="row">
+          <select id="futureSelect"></select>
+          <input id="newChoice" type="text" placeholder="Nytt alternativ" />
+          <button id="addChoiceBtn">Legg til alternativ</button>
+          <button id="resetChoicesBtn" class="danger" type="button">Tilbakestill alternativer</button>
+        </div>
+        <ul id="choicesList"></ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Meny‑lenker (PDF/URL) – rekkefølge & validering</h2>
+    <div class="row">
+      <input id="menuLinkLabel" type="text" placeholder="Tittel (f.eks. Meny 1)" />
+      <input id="menuLinkUrl" type="text" placeholder="URL eller filnavn (http(s)://… eller *.pdf)" style="min-width:260px" />
+      <button id="addMenuLinkBtn">Legg til lenke</button>
+    </div>
+    <ul id="menuLinksList"></ul>
+  </section>
+
+  <section class="card">
+    <h2>Backup / Import</h2>
+    <div class="grid">
+      <div>
+        <button id="exportBtn">Eksporter konfig</button>
+        <textarea id="exportArea" style="width:100%;min-height:120px" readonly></textarea>
+      </div>
+      <div>
+        <textarea id="importArea" style="width:100%;min-height:120px" placeholder="Lim inn JSON her"></textarea>
+        <div class="row">
+          <button id="importBtn" class="secondary">Importer</button>
+          <button id="resetBtn" class="danger">Tilbakestill til standard</button>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+<script src="overtidsmat_shared.js"></script>
+<script>
+let cfg=OvertidsmatConfig.loadConfig();
+// Common refs
+const sel=document.getElementById('supplierSelect');
+const newSupplier=document.getElementById('newSupplier');
+const pw=document.getElementById('supplierPassword');
+
+// Menu refs (unchanged from earlier)
+const menuList=document.getElementById('menuList');
+const newMenuItem=document.getElementById('newMenuItem');
+const menuItemSelect=document.getElementById('menuItemSelect');
+const subList=document.getElementById('subList');
+const newSubItem=document.getElementById('newSubItem');
+const subItemSelect=document.getElementById('subItemSelect');
+const newExtra=document.getElementById('newExtra');
+const extrasList=document.getElementById('extrasList');
+const crumb=document.getElementById('crumb');
+const addExtraBtn=document.getElementById('addExtraBtn');
+const resetExtrasBtn=document.getElementById('resetExtrasBtn');
+
+// Drinks refs
+const newDrink=document.getElementById('newDrink');
+const addDrinkBtn=document.getElementById('addDrinkBtn');
+const drinkList=document.getElementById('drinkList');
+const drinkSelect=document.getElementById('drinkSelect');
+const newVariant=document.getElementById('newVariant');
+const addVariantBtn=document.getElementById('addVariantBtn');
+const resetVariantsBtn=document.getElementById('resetVariantsBtn');
+const variantList=document.getElementById('variantList');
+const variantSelect=document.getElementById('variantSelect');
+const newDrinkExtra=document.getElementById('newDrinkExtra');
+const addDrinkExtraBtn=document.getElementById('addDrinkExtraBtn');
+const resetDrinkExtrasBtn=document.getElementById('resetDrinkExtrasBtn');
+const drinkExtrasList=document.getElementById('drinkExtrasList');
+
+// Depts & places & future & links (unchanged)
+const deptList=document.getElementById('deptList');
+const newDept=document.getElementById('newDept');
+const placesList=document.getElementById('placesList');
+const newPlace=document.getElementById('newPlace');
+const futureList=document.getElementById('futureList');
+const futureLabel=document.getElementById('futureLabel');
+const futureType=document.getElementById('futureType');
+const futureSelect=document.getElementById('futureSelect');
+const newChoice=document.getElementById('newChoice');
+const choicesList=document.getElementById('choicesList');
+const menuLinkLabel=document.getElementById('menuLinkLabel');
+const menuLinkUrl=document.getElementById('menuLinkUrl');
+const menuLinksList=document.getElementById('menuLinksList');
+
+function updateCrumb(){ const s=sel.value||'(leverandør)'; const m=menuItemSelect.value||'(meny)'; const u=subItemSelect.value||'(under‑valg)'; crumb.textContent=`${s} → ${m} → ${u}`; const hasPath=!!(sel.value && menuItemSelect.value && subItemSelect.value); addExtraBtn.disabled=!hasPath; resetExtrasBtn.disabled=!hasPath; }
+
+function refreshSuppliers(selected){ const current=selected||(sel.value||''); sel.innerHTML=''; OvertidsmatConfig.getSuppliers(cfg).forEach(name=>{ const opt=document.createElement('option'); opt.value=name; opt.textContent=name; sel.appendChild(opt); }); if(!current&&sel.options.length) sel.value=sel.options[0].value; else sel.value=current; refreshPasswordField(); refreshMenu(); refreshMenuSelect(); refreshSubList(); refreshSubItemSelect(); refreshExtras(); refreshDrinks(); refreshDrinkSelects(); refreshVariantList(); refreshVariantSelect(); refreshDrinkExtras(); refreshDepartments(); refreshPlaces(); refreshFuture(); refreshFutureSelect(); refreshChoices(); refreshMenuLinks(); updateCrumb(); }
+function refreshPasswordField(){ const s=OvertidsmatConfig.findSupplier(cfg, sel.value); pw.value = s ? (s.password||'') : ''; }
+
+// ===== Menu functions (as before)
+function refreshMenu(){ menuList.innerHTML=''; const items=OvertidsmatConfig.getMenuItems(cfg, sel.value); if(!items.length){ const li=document.createElement('li'); li.className='muted'; li.textContent='Ingen menyelementer ennå'; menuList.appendChild(li); return;} items.forEach(item=>{ const li=document.createElement('li'); li.innerHTML=`<span>${item}</span>`; const del=document.createElement('button'); del.textContent='Slett'; del.className='danger'; del.onclick=()=>{ try{ OvertidsmatConfig.removeMenuItem(cfg, sel.value, item); cfg=OvertidsmatConfig.loadConfig(); refreshMenu(); refreshMenuSelect(); refreshSubList(); refreshSubItemSelect(); refreshExtras(); updateCrumb(); }catch(e){ alert(e.message);} }; li.appendChild(del); menuList.appendChild(li); }); }
+function refreshMenuSelect(){ menuItemSelect.innerHTML=''; const items=OvertidsmatConfig.getMenuItems(cfg, sel.value); if(!items.length){ const opt=document.createElement('option'); opt.value=''; opt.textContent='Ingen menyelementer'; menuItemSelect.appendChild(opt); updateCrumb(); return;} items.forEach(item=>{ const opt=document.createElement('option'); opt.value=item; opt.textContent=item; menuItemSelect.appendChild(opt); }); if(!menuItemSelect.value && menuItemSelect.options.length) menuItemSelect.value=menuItemSelect.options[0].value; updateCrumb(); }
+function refreshSubList(){ subList.innerHTML=''; const item=menuItemSelect.value; if(!item){ const li=document.createElement('li'); li.className='muted'; li.textContent='Velg menyelement'; subList.appendChild(li); updateCrumb(); return;} const subs=OvertidsmatConfig.getSubmenu(cfg, sel.value, item); if(!subs.length){ const li=document.createElement('li'); li.className='muted'; li.textContent='Ingen under‑valg ennå'; subList.appendChild(li); updateCrumb(); return;} subs.forEach(su=>{ const li=document.createElement('li'); li.innerHTML=`<span>${su}</span>`; const del=document.createElement('button'); del.textContent='Slett'; del.className='danger'; del.onclick=()=>{ try{ OvertidsmatConfig.removeSubmenuItem(cfg, sel.value, item, su); cfg=OvertidsmatConfig.loadConfig(); refreshSubList(); refreshSubItemSelect(); refreshExtras(); updateCrumb(); }catch(e){ alert(e.message);} }; li.appendChild(del); subList.appendChild(li); }); updateCrumb(); }
+function refreshSubItemSelect(){ subItemSelect.innerHTML=''; const item=menuItemSelect.value; if(!item){ const opt=document.createElement('option'); opt.value=''; opt.textContent='Velg under‑valg'; subItemSelect.appendChild(opt); updateCrumb(); return;} const subs=OvertidsmatConfig.getSubmenu(cfg, sel.value, item); if(!subs.length){ const opt=document.createElement('option'); opt.value=''; opt.textContent='Ingen under‑valg'; subItemSelect.appendChild(opt); updateCrumb(); return;} subs.forEach(su=>{ const opt=document.createElement('option'); opt.value=su; opt.textContent=su; subItemSelect.appendChild(opt); }); if(!subItemSelect.value && subItemSelect.options.length) subItemSelect.value=subItemSelect.options[0].value; updateCrumb(); }
+function refreshExtras(){ extrasList.innerHTML=''; const item=menuItemSelect.value, sub=subItemSelect.value; if(!item||!sub){ const li=document.createElement('li'); li.className='muted'; li.textContent='Velg under‑valg for å se tillegg'; extrasList.appendChild(li); updateCrumb(); return;} const arr=OvertidsmatConfig.getSubExtras(cfg, sel.value, item, sub); if(!arr.length){ const li=document.createElement('li'); li.className='muted'; li.textContent='Ingen tillegg ennå'; extrasList.appendChild(li); updateCrumb(); return;} arr.forEach(ex=>{ const li=document.createElement('li'); li.innerHTML=`<span>${ex}</span>`; const del=document.createElement('button'); del.textContent='Slett'; del.className='danger'; del.onclick=()=>{ try{ OvertidsmatConfig.removeSubExtra(cfg, sel.value, item, sub, ex); cfg=OvertidsmatConfig.loadConfig(); refreshExtras(); }catch(e){ alert(e.message);} }; li.appendChild(del); extrasList.appendChild(li); }); updateCrumb(); }
+
+document.getElementById('addMenuItemBtn').onclick=()=>{ try{ OvertidsmatConfig.addMenuItem(cfg, sel.value, newMenuItem.value); cfg=OvertidsmatConfig.loadConfig(); newMenuItem.value=''; refreshMenu(); refreshMenuSelect(); }catch(e){ alert(e.message);} };
+menuItemSelect.onchange=()=>{ refreshSubList(); refreshSubItemSelect(); refreshExtras(); };
+subItemSelect.onchange=()=>{ refreshExtras(); updateCrumb(); };
+document.getElementById('addSubItemBtn').onclick=()=>{ try{ OvertidsmatConfig.addSubmenuItem(cfg, sel.value, menuItemSelect.value, newSubItem.value); cfg=OvertidsmatConfig.loadConfig(); newSubItem.value=''; refreshSubList(); refreshSubItemSelect(); refreshExtras(); }catch(e){ alert(e.message);} };
+document.getElementById('resetSubBtn').onclick=()=>{ if(!menuItemSelect.value) return; if(!confirm('Tilbakestille alle under‑valg for valgt menyelement?')) return; try{ OvertidsmatConfig.resetSubmenu(cfg, sel.value, menuItemSelect.value); cfg=OvertidsmatConfig.loadConfig(); refreshSubList(); refreshSubItemSelect(); refreshExtras(); }catch(e){ alert(e.message);} };
+
+document.getElementById('addExtraBtn').onclick=()=>{ if(!sel.value||!menuItemSelect.value||!subItemSelect.value){ alert('Velg meny og under‑valg først.'); return; } try{ OvertidsmatConfig.addSubExtra(cfg, sel.value, menuItemSelect.value, subItemSelect.value, newExtra.value); cfg=OvertidsmatConfig.loadConfig(); newExtra.value=''; refreshExtras(); }catch(e){ alert(e.message);} };
+document.getElementById('resetExtrasBtn').onclick=()=>{ if(!subItemSelect.value) return; if(!confirm('Tilbakestille alle tillegg for valgt under‑valg?')) return; try{ OvertidsmatConfig.resetSubExtras(cfg, sel.value, menuItemSelect.value, subItemSelect.value); cfg=OvertidsmatConfig.loadConfig(); refreshExtras(); }catch(e){ alert(e.message);} };
+
+// ===== Drinks functions =====
+function refreshDrinks(){ drinkList.innerHTML=''; const arr=OvertidsmatConfig.getDrinks(cfg, sel.value); if(!arr.length){ const li=document.createElement('li'); li.className='muted'; li.textContent='Ingen drikke ennå'; drinkList.appendChild(li); return;} arr.forEach(d=>{ const li=document.createElement('li'); li.innerHTML=`<span>${d}</span>`; const del=document.createElement('button'); del.textContent='Slett'; del.className='danger'; del.onclick=()=>{ try{ OvertidsmatConfig.removeDrink(cfg, sel.value, d); cfg=OvertidsmatConfig.loadConfig(); refreshDrinks(); refreshDrinkSelects(); refreshVariantList(); refreshVariantSelect(); refreshDrinkExtras(); }catch(e){ alert(e.message);} }; li.appendChild(del); drinkList.appendChild(li); }); }
+function refreshDrinkSelects(){ drinkSelect.innerHTML=''; const arr=OvertidsmatConfig.getDrinks(cfg, sel.value); if(!arr.length){ const opt=document.createElement('option'); opt.value=''; opt.textContent='Ingen drikke'; drinkSelect.appendChild(opt); return;} arr.forEach(d=>{ const opt=document.createElement('option'); opt.value=d; opt.textContent=d; drinkSelect.appendChild(opt); }); }
+function refreshVariantList(){ variantList.innerHTML=''; const drink=drinkSelect.value; if(!drink){ const li=document.createElement('li'); li.className='muted'; li.textContent='Velg drikke'; variantList.appendChild(li); return;} const vars=OvertidsmatConfig.getDrinkVariants(cfg, sel.value, drink); if(!vars.length){ const li=document.createElement('li'); li.className='muted'; li.textContent='Ingen varianter (enkeltvalg)'; variantList.appendChild(li); return;} vars.forEach(v=>{ const li=document.createElement('li'); li.innerHTML=`<span>${v}</span>`; const del=document.createElement('button'); del.textContent='Slett'; del.className='danger'; del.onclick=()=>{ try{ OvertidsmatConfig.removeDrinkVariant(cfg, sel.value, drink, v); cfg=OvertidsmatConfig.loadConfig(); refreshVariantList(); refreshVariantSelect(); refreshDrinkExtras(); }catch(e){ alert(e.message);} }; li.appendChild(del); variantList.appendChild(li); }); }
+function refreshVariantSelect(){ variantSelect.innerHTML=''; const drink=drinkSelect.value; if(!drink){ const opt=document.createElement('option'); opt.value=''; opt.textContent='Velg drikke'; variantSelect.appendChild(opt); return;} const vars=OvertidsmatConfig.getDrinkVariants(cfg, sel.value, drink); if(!vars.length){ const opt=document.createElement('option'); opt.value=''; opt.textContent='(ingen variant)'; variantSelect.appendChild(opt); return;} vars.forEach(v=>{ const opt=document.createElement('option'); opt.value=v; opt.textContent=v; variantSelect.appendChild(opt); }); }
+function refreshDrinkExtras(){ drinkExtrasList.innerHTML=''; const drink=drinkSelect.value; const variant=variantSelect.value; const vars=OvertidsmatConfig.getDrinkVariants(cfg, sel.value, drink); if(vars.length && !variant){ const li=document.createElement('li'); li.className='muted'; li.textContent='Velg variant for å se tillegg'; drinkExtrasList.appendChild(li); return;} if(!vars.length && drink){ // drink uten varianter – ingen tillegg uten variant i denne runden
+  const li=document.createElement('li'); li.className='muted'; li.textContent='Ingen tillegg for enkel drikke'; drinkExtrasList.appendChild(li); return; }
+  const extras=OvertidsmatConfig.getDrinkExtras(cfg, sel.value, drink, variant); if(!extras.length){ const li=document.createElement('li'); li.className='muted'; li.textContent='Ingen tillegg ennå'; drinkExtrasList.appendChild(li); return; } extras.forEach(x=>{ const li=document.createElement('li'); li.innerHTML=`<span>${x}</span>`; const del=document.createElement('button'); del.textContent='Slett'; del.className='danger'; del.onclick=()=>{ try{ OvertidsmatConfig.removeDrinkExtra(cfg, sel.value, drink, variant, x); cfg=OvertidsmatConfig.loadConfig(); refreshDrinkExtras(); }catch(e){ alert(e.message);} }; li.appendChild(del); drinkExtrasList.appendChild(li); }); }
+
+addDrinkBtn.onclick=()=>{ try{ OvertidsmatConfig.addDrink(cfg, sel.value, newDrink.value); cfg=OvertidsmatConfig.loadConfig(); newDrink.value=''; refreshDrinks(); refreshDrinkSelects(); }catch(e){ alert(e.message);} };
+drinkSelect.onchange=()=>{ refreshVariantList(); refreshVariantSelect(); refreshDrinkExtras(); };
+addVariantBtn.onclick=()=>{ try{ if(!drinkSelect.value) return alert('Velg drikke først.'); OvertidsmatConfig.addDrinkVariant(cfg, sel.value, drinkSelect.value, newVariant.value); cfg=OvertidsmatConfig.loadConfig(); newVariant.value=''; refreshVariantList(); refreshVariantSelect(); refreshDrinkExtras(); }catch(e){ alert(e.message);} };
+resetVariantsBtn.onclick=()=>{ if(!drinkSelect.value) return; if(!confirm('Tilbakestille alle varianter for valgt drikke?')) return; try{ OvertidsmatConfig.resetDrinkVariants(cfg, sel.value, drinkSelect.value); cfg=OvertidsmatConfig.loadConfig(); refreshVariantList(); refreshVariantSelect(); refreshDrinkExtras(); }catch(e){ alert(e.message);} };
+addDrinkExtraBtn.onclick=()=>{ try{ if(!drinkSelect.value) return alert('Velg drikke først.'); const vars=OvertidsmatConfig.getDrinkVariants(cfg, sel.value, drinkSelect.value); if(vars.length && !variantSelect.value) return alert('Velg variant først.'); const variant = vars.length ? variantSelect.value : '(ingen variant)'; if(vars.length){ OvertidsmatConfig.addDrinkExtra(cfg, sel.value, drinkSelect.value, variant, newDrinkExtra.value); } else { alert('Tillegg for drikke uten variant er ikke aktivert i denne versjonen. Legg en variant først.'); return; } cfg=OvertidsmatConfig.loadConfig(); newDrinkExtra.value=''; refreshDrinkExtras(); }catch(e){ alert(e.message);} };
+resetDrinkExtrasBtn.onclick=()=>{ try{ if(!drinkSelect.value) return; const vars=OvertidsmatConfig.getDrinkVariants(cfg, sel.value, drinkSelect.value); if(vars.length && !variantSelect.value) return alert('Velg variant først.'); if(vars.length){ OvertidsmatConfig.resetDrinkExtras(cfg, sel.value, drinkSelect.value, variantSelect.value); cfg=OvertidsmatConfig.loadConfig(); refreshDrinkExtras(); } else { alert('Tillegg for drikke uten variant er ikke aktivert i denne versjonen.'); } }catch(e){ alert(e.message);} };
+
+// ===== Departments
+function refreshDepartments(){ deptList.innerHTML=''; const depts=OvertidsmatConfig.getDepartments(cfg); if(!depts.length){ const li=document.createElement('li'); li.className='muted'; li.textContent='Ingen avdelinger ennå'; deptList.appendChild(li); return;} depts.forEach(d=>{ const li=document.createElement('li'); li.innerHTML=`<span>${d}</span>`; const del=document.createElement('button'); del.textContent='Slett'; del.className='danger'; del.onclick=()=>{ try{ OvertidsmatConfig.removeDepartment(cfg,d); cfg=OvertidsmatConfig.loadConfig(); refreshDepartments(); }catch(e){ alert(e.message);} }; li.appendChild(del); deptList.appendChild(li); }); }
+document.getElementById('addDeptBtn').onclick=()=>{ try{ OvertidsmatConfig.addDepartment(cfg,newDept.value); cfg=OvertidsmatConfig.loadConfig(); newDept.value=''; refreshDepartments(); }catch(e){ alert(e.message);} };
+
+// ===== Places
+function refreshPlaces(){ placesList.innerHTML=''; const places=OvertidsmatConfig.getDeliveryPlaces(cfg); if(!places.length){ const li=document.createElement('li'); li.className='muted'; li.textContent='Ingen leveringssteder ennå'; placesList.appendChild(li); return;} places.forEach(p=>{ const li=document.createElement('li'); li.innerHTML=`<span>${p}</span>`; const del=document.createElement('button'); del.textContent='Slett'; del.className='danger'; del.onclick=()=>{ try{ OvertidsmatConfig.removeDeliveryPlace(cfg,p); cfg=OvertidsmatConfig.loadConfig(); refreshPlaces(); }catch(e){ alert(e.message);} }; li.appendChild(del); placesList.appendChild(li); }); }
+document.getElementById('addPlaceBtn').onclick=()=>{ try{ OvertidsmatConfig.addDeliveryPlace(cfg,newPlace.value); cfg=OvertidsmatConfig.loadConfig(); newPlace.value=''; refreshPlaces(); }catch(e){ alert(e.message);} };
+
+// ===== Future (with reorder)
+function refreshFuture(){ futureList.innerHTML=''; const opts=OvertidsmatConfig.getFutureOptions(cfg); if(!opts.length){ const li=document.createElement('li'); li.className='muted'; li.textContent='Ingen fremtidige valg ennå'; futureList.appendChild(li); return;} opts.forEach(o=>{ const li=document.createElement('li'); const left=document.createElement('span'); left.textContent=`${o.label} (${o.type}${o.type==='dropdown'&&o.choices? ', '+o.choices.length+' valg':''})`;
+  const ctr=document.createElement('div'); ctr.style.display='flex'; ctr.style.gap='6px';
+  const up=document.createElement('button'); up.textContent='↑'; up.className='secondary'; up.onclick=()=>{ try{ OvertidsmatConfig.moveFutureOption(cfg,o.label,-1); cfg=OvertidsmatConfig.loadConfig(); refreshFuture(); refreshFutureSelect(); }catch(e){ alert(e.message);} };
+  const down=document.createElement('button'); down.textContent='↓'; down.className='secondary'; down.onclick=()=>{ try{ OvertidsmatConfig.moveFutureOption(cfg,o.label,1); cfg=OvertidsmatConfig.loadConfig(); refreshFuture(); refreshFutureSelect(); }catch(e){ alert(e.message);} };
+  const del=document.createElement('button'); del.textContent='Slett'; del.className='danger'; del.onclick=()=>{ try{ OvertidsmatConfig.removeFutureOption(cfg,o.label); cfg=OvertidsmatConfig.loadConfig(); refreshFuture(); refreshFutureSelect(); refreshChoices(); }catch(e){ alert(e.message);} };
+  ctr.appendChild(up); ctr.appendChild(down); ctr.appendChild(del);
+  li.appendChild(left); li.appendChild(ctr); futureList.appendChild(li); }); }
+function refreshFutureSelect(){ futureSelect.innerHTML=''; const opts=OvertidsmatConfig.getFutureOptions(cfg).filter(o=>o.type==='dropdown'); if(!opts.length){ const opt=document.createElement('option'); opt.value=''; opt.textContent='Ingen dropdown-felt'; futureSelect.appendChild(opt); return;} opts.forEach(o=>{ const opt=document.createElement('option'); opt.value=o.label; opt.textContent=o.label; futureSelect.appendChild(opt); }); }
+function refreshChoices(){ choicesList.innerHTML=''; const label=futureSelect.value; if(!label){ const li=document.createElement('li'); li.className='muted'; li.textContent='Velg et dropdown-felt'; choicesList.appendChild(li); return;} const fo=OvertidsmatConfig.getFutureOptions(cfg).find(x=>x.label===label); if(!fo||fo.type!=='dropdown'){ const li=document.createElement('li'); li.className='muted'; li.textContent='Velg et dropdown-felt'; choicesList.appendChild(li); return;} const arr=fo.choices||[]; if(!arr.length){ const li=document.createElement('li'); li.className='muted'; li.textContent='Ingen alternativer ennå'; choicesList.appendChild(li); return;} arr.forEach(ch=>{ const li=document.createElement('li'); const left=document.createElement('span'); left.textContent=ch; const ctr=document.createElement('div'); ctr.style.display='flex'; ctr.style.gap='6px'; const up=document.createElement('button'); up.textContent='↑'; up.className='secondary'; up.onclick=()=>{ try{ OvertidsmatConfig.moveDropdownChoice(cfg,label,ch,-1); cfg=OvertidsmatConfig.loadConfig(); refreshChoices(); }catch(e){ alert(e.message);} };
+  const down=document.createElement('button'); down.textContent='↓'; down.className='secondary'; down.onclick=()=>{ try{ OvertidsmatConfig.moveDropdownChoice(cfg,label,ch,1); cfg=OvertidsmatConfig.loadConfig(); refreshChoices(); }catch(e){ alert(e.message);} };
+  const del=document.createElement('button'); del.textContent='Slett'; del.className='danger'; del.onclick=()=>{ try{ OvertidsmatConfig.removeDropdownChoice(cfg,label,ch); cfg=OvertidsmatConfig.loadConfig(); refreshChoices(); refreshFuture(); }catch(e){ alert(e.message);} };
+  ctr.appendChild(up); ctr.appendChild(down); ctr.appendChild(del); li.appendChild(left); li.appendChild(ctr); choicesList.appendChild(li); }); }
+
+document.getElementById('addFutureBtn').onclick=()=>{ try{ OvertidsmatConfig.addFutureOption(cfg,futureLabel.value,futureType.value); cfg=OvertidsmatConfig.loadConfig(); futureLabel.value=''; refreshFuture(); refreshFutureSelect(); }catch(e){ alert(e.message);} };
+futureSelect.onchange=refreshChoices;
+document.getElementById('addChoiceBtn').onclick=()=>{ const label=futureSelect.value; try{ OvertidsmatConfig.addDropdownChoice(cfg,label,newChoice.value); cfg=OvertidsmatConfig.loadConfig(); newChoice.value=''; refreshChoices(); refreshFuture(); }catch(e){ alert(e.message);} };
+document.getElementById('resetChoicesBtn').onclick=()=>{ const label=futureSelect.value; if(!label) return; if(!confirm('Tilbakestille alle alternativer for dette feltet?')) return; try{ OvertidsmatConfig.resetDropdownChoices(cfg,label); cfg=OvertidsmatConfig.loadConfig(); refreshChoices(); refreshFuture(); }catch(e){ alert(e.message);} };
+
+// ===== Links
+function isValidUrlOrPdf(u){ const s=String(u||'').trim(); return /^https?:\/\//i.test(s) || /\.pdf$/i.test(s); }
+function refreshMenuLinks(){ menuLinksList.innerHTML=''; const links=OvertidsmatConfig.getMenuLinks(cfg); if(!links.length){ const li=document.createElement('li'); li.className='muted'; li.textContent='Ingen meny‑lenker ennå'; menuLinksList.appendChild(li); return;} links.forEach(link=>{ const li=document.createElement('li'); li.innerHTML=`<span>${link.label} — ${link.url}</span>`; const up=document.createElement('button'); up.textContent='↑'; up.className='secondary'; up.onclick=()=>{ try{ OvertidsmatConfig.moveMenuLink(cfg, link.label, -1); cfg=OvertidsmatConfig.loadConfig(); refreshMenuLinks(); }catch(e){ alert(e.message);} };
+  const down=document.createElement('button'); down.textContent='↓'; down.className='secondary'; down.onclick=()=>{ try{ OvertidsmatConfig.moveMenuLink(cfg, link.label, +1); cfg=OvertidsmatConfig.loadConfig(); refreshMenuLinks(); }catch(e){ alert(e.message);} };
+  const open=document.createElement('a'); open.textContent='Åpne'; open.href=link.url; open.target='_blank'; open.rel='noopener';
+  const del=document.createElement('button'); del.textContent='Slett'; del.className='danger'; del.onclick=()=>{ try{ OvertidsmatConfig.removeMenuLink(cfg, link.label); cfg=OvertidsmatConfig.loadConfig(); refreshMenuLinks(); }catch(e){ alert(e.message);} };
+  const right=document.createElement('div'); right.style.display='flex'; right.style.gap='8px'; right.style.alignItems='center'; right.appendChild(up); right.appendChild(down); right.appendChild(open); right.appendChild(del);
+  li.appendChild(right); li.style.display='flex'; li.style.justifyContent='space-between';
+  menuLinksList.appendChild(li); }); }
+
+document.getElementById('addMenuLinkBtn').onclick=()=>{ const label=menuLinkLabel.value, url=menuLinkUrl.value; if(!isValidUrlOrPdf(url)){ alert('Ugyldig URL. Bruk http(s):// … eller en .pdf‑fil.'); return; } try{ OvertidsmatConfig.addMenuLink(cfg, label, url); cfg=OvertidsmatConfig.loadConfig(); menuLinkLabel.value=''; menuLinkUrl.value=''; refreshMenuLinks(); }catch(e){ alert(e.message);} };
+
+// ===== Supplier events & init
+sel.onchange=()=>{ refreshPasswordField(); refreshMenu(); refreshMenuSelect(); refreshSubList(); refreshSubItemSelect(); refreshExtras(); refreshDrinks(); refreshDrinkSelects(); refreshVariantList(); refreshVariantSelect(); refreshDrinkExtras(); };
+document.getElementById('addSupplierBtn').onclick=()=>{ try{ OvertidsmatConfig.addSupplier(cfg,newSupplier.value); cfg=OvertidsmatConfig.loadConfig(); newSupplier.value=''; refreshSuppliers(); }catch(e){ alert(e.message);} };
+document.getElementById('renameSupplierBtn').onclick=()=>{ const current=sel.value; const n=prompt('Nytt navn for leverandør:', current); if(!n) return; try{ OvertidsmatConfig.renameSupplier(cfg,current,n); cfg=OvertidsmatConfig.loadConfig(); refreshSuppliers(n); }catch(e){ alert(e.message);} };
+document.getElementById('removeSupplierBtn').onclick=()=>{ const current=sel.value; if(!current) return; if(!confirm(`Slette «${current}»?`)) return; try{ OvertidsmatConfig.removeSupplier(cfg,current); cfg=OvertidsmatConfig.loadConfig(); refreshSuppliers(); }catch(e){ alert(e.message);} };
+document.getElementById('savePwBtn').onclick=()=>{ try{ OvertidsmatConfig.setSupplierPassword(cfg, sel.value, pw.value); cfg=OvertidsmatConfig.loadConfig(); alert('Passord lagret.'); }catch(e){ alert(e.message);} };
+document.getElementById('togglePw').onclick=()=>{ const f=document.getElementById('supplierPassword'); const btn=document.getElementById('togglePw'); f.type=f.type==='password'?'text':'password'; btn.textContent=f.type==='password'?'Vis':'Skjul'; };
+
+// Cutoff
+const cw=document.getElementById('cutoffWeekday');
+const ce=document.getElementById('cutoffWeekend');
+function loadCut(){const s=OvertidsmatConfig.getCutoffSettings(cfg);cw.value=s.weekday;ce.value=s.weekendFri;}
+document.getElementById('saveCutoffs').onclick=()=>{OvertidsmatConfig.setCutoffSettings(cfg,cw.value,ce.value);cfg=OvertidsmatConfig.loadConfig();alert('Lagret');};
+function init(){ refreshSuppliers(); }
+init();
+</script>
+</body>
+</html>
